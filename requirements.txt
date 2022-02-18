@@ -1,0 +1,3 @@
+#Requirements
+black==22.1.0
+mypy==0.91
