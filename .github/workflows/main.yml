@@ -28,4 +28,4 @@ jobs:
           if [ -d tests ]; then pytest tests; fi
       - name: Check types with mypy
         run: |
-          mypy . --ignore-missing-imports
+          if [ -d src ]; then mypy src --ignore-missing-imports; fi
