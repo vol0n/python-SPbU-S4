@@ -71,15 +71,10 @@ def mul(mat1: Matrix, mat2: Matrix) -> Matrix:
         check_is_matrix(mat)
     assert mat1 and mat2, "Can't multiply empty matrices!"
     if len(mat1[0]) != len(mat2):
-        raise ValueError(
-            f"Wrong sizes for multiplication: {(len(mat1), len(mat1[0]))}, {(len(mat2), len(mat2[0]))}"
-        )
+        raise ValueError(f"Wrong sizes for multiplication: {(len(mat1), len(mat1[0]))}, {(len(mat2), len(mat2[0]))}")
     result: List[List[float]] = [
         # could use simply zip(*mat2) to get cols, but then mypy complains that zip returns Iterable[Tuple[Any, ...]]
-        [
-            calc_product(row, col)
-            for col in ([row[i] for row in mat2] for i in range(len(mat2[0])))
-        ]
+        [calc_product(row, col) for col in ([row[i] for row in mat2] for i in range(len(mat2[0])))]
         for row in mat1
     ]
     return result
