@@ -1,10 +1,10 @@
 from math import sqrt
 from copy import deepcopy
-from typing import Union
+from typing import Union, List, Tuple
 
-Num = Union[int, float, complex]
-Vector = list[Num]
-Matrix = list[list[Num]]
+Num = Union[float, int]
+Vector = List[Num]
+Matrix = List[List[Num]]
 
 
 def check_vectors_compatible(vec1: Vector, vec2: Vector):
@@ -30,7 +30,7 @@ def calc_angle(vec1: Vector, vec2: Vector) -> Num:
     # if one of the vectors is null, then angle is zero
     if not len1 * len2:
         return 1
-    return calc_product(vec1, vec2) / (len1*len2)
+    return calc_product(vec1, vec2) / (len1 * len2)
 
 
 def check_is_matrix(mat: Matrix):
@@ -38,14 +38,14 @@ def check_is_matrix(mat: Matrix):
         return
     assert len(mat), "Minimal matrix is [[]], not []"
     if not all(map(lambda row: len(row) == len(mat[0]), mat)):
-        raise ValueError('All rows of a matrix must have the same size.')
+        raise ValueError("All rows of a matrix must have the same size.")
 
 
 def check_matrices_equal_size(mat1: Matrix, mat2: Matrix):
     for mat in (mat1, mat2):
         check_is_matrix(mat)
     if len(mat1) != len(mat2) or len(mat1[0]) != len(mat2[0]):
-        raise ValueError('Matrices must have the same size.')
+        raise ValueError("Matrices must have the same size.")
 
 
 def two_add(mat1: Matrix, mat2: Matrix):
@@ -71,5 +71,15 @@ def mul(mat1: Matrix, mat2: Matrix) -> Matrix:
         check_is_matrix(mat)
     assert mat1 and mat2, "Can't multiply empty matrices!"
     if len(mat1[0]) != len(mat2):
-        raise ValueError(f'Wrong sizes for multiplication: {(len(mat1), len(mat1[0]))}, {(len(mat2), len(mat2[0]))}')
-    return [[calc_product(row, col) for col in zip(*mat2)] for row in mat1]
+        raise ValueError(
+            f"Wrong sizes for multiplication: {(len(mat1), len(mat1[0]))}, {(len(mat2), len(mat2[0]))}"
+        )
+    result: List[List[float]] = [
+        # could use simply zip(*mat2) to get cols, but then mypy complains that zip returns Iterable[Tuple[Any, ...]]
+        [
+            calc_product(row, col)
+            for col in ([row[i] for row in mat2] for i in range(len(mat2[0])))
+        ]
+        for row in mat1
+    ]
+    return result
