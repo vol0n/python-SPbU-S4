@@ -20,7 +20,7 @@ def calc_product(vec1: Vector, vec2: Vector) -> Num:
 def calc_len(vec: Vector) -> Num:
     if not vec:
         raise ValueError("Vector should not be empty to calc his len!")
-    return sqrt(sum(map(lambda x: x ** 2, vec)))
+    return sqrt(sum(map(lambda x: x**2, vec)))
 
 
 # actually it return the cos of the angle
