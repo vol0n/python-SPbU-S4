@@ -25,7 +25,7 @@ jobs:
           black . --check -l 120
       - name: Test with unittest
         run: |
-          if [ -d tests ]; then pytest tests; fi
+          if [ -d tests ]; then python -m pytest tests; fi
       - name: Check types with mypy
         run: |
           if [ -d src ]; then mypy src --ignore-missing-imports; fi
