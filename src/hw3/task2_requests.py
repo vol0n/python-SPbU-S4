@@ -69,7 +69,11 @@ async def download_images(path_to_save: Path, images_count: int = 1):
 async def main():
     parser = argparse.ArgumentParser(description=f"Download images from {url}")
     parser.add_argument(
-        "-n", "--images_count", help="Number of images to be downloaded", default=1, type=int,
+        "-n",
+        "--images_count",
+        help="Number of images to be downloaded",
+        default=1,
+        type=int,
     )
     parser.add_argument(
         "-p",
