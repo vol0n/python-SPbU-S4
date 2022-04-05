@@ -13,16 +13,6 @@ class TreapNode:
             return False
         return self.x == other.x and self.y == other.y and self.left == other.left and self.right == other.right
 
-    @staticmethod
-    def deep_copy(node: Optional["TreapNode"]):
-        if not node:
-            return None
-        new_copy = TreapNode(node.x, node.y)
-        if node.right:
-            new_copy.right = TreapNode.deep_copy(node.right)
-        if node.left:
-            new_copy.left = TreapNode.deep_copy(node.left)
-        return new_copy
 
     @staticmethod
     def from_list(nodes):
