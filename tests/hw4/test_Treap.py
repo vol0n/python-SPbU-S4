@@ -1,5 +1,15 @@
 from src.hw4.Treap import Treap, TreapNode
+from tests.hw4.test_TreapNode import treap_node_from_list
 import pytest
+
+
+def treap_from_list(nodes: list):
+    """
+    This func is for quickly creating test treaps.
+    """
+    t = Treap()
+    t.root = treap_node_from_list(nodes)
+    return t
 
 
 @pytest.mark.parametrize(
@@ -13,9 +23,9 @@ def test_to_dict(treap, expected):
     "init_dict, expected",
     [
         ({}, Treap()),
-        ({1: 2}, Treap.from_list([(1, 2)])),
-        ({3: 3, 4: 3}, Treap.from_list([(3, 3), None, (4, 3)])),
-        ({3: 3, 2: 2, 1: 1}, Treap.from_list([(3, 3), (2, 2), None, (1, 1), None])),
+        ({1: 2}, treap_from_list([(1, 2)])),
+        ({3: 3, 4: 3}, treap_from_list([(3, 3), None, (4, 3)])),
+        ({3: 3, 2: 2, 1: 1}, treap_from_list([(3, 3), (2, 2), None, (1, 1), None])),
     ],
 )
 def test_constructor(init_dict, expected):
@@ -27,7 +37,7 @@ def test_constructor(init_dict, expected):
     [
         (Treap(), []),
         (Treap({1: 2}), [TreapNode(1, 2)]),
-        (Treap({3: 3, 4: 3}), [TreapNode.from_list([(3, 3), None, (4, 3)]), TreapNode(4, 3)]),
+        (Treap({3: 3, 4: 3}), [treap_node_from_list([(3, 3), None, (4, 3)]), TreapNode(4, 3)]),
     ],
 )
 def test_iter(treap, expected_walk):
