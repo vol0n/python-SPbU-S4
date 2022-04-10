@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Optional, Tuple, TypeVar, Generic, Iterator, Dict, Any, Protocol
 from abc import abstractmethod
+import random
 
 K = TypeVar("K", bound="Comparable")
-V = TypeVar("V", bound="Comparable")
 
 
 class Comparable(Protocol):
@@ -17,25 +17,26 @@ class Comparable(Protocol):
         pass
 
 
-class TreapNode(Generic[K, V]):
+class TreapNode(Generic[K]):
     NIL_VERTEX: Any = None
 
     @classmethod
     def _init_nil_node(cls):
         cls.NIL_VERTEX = TreapNode(None, None)
+        cls.NIL_VERTEX.size = 0
 
-    def __init__(
-        self,
-        x: K,
-        y: V,
-        left: Optional["TreapNode[K, V]"] = None,
-        right: Optional["TreapNode[K, V]"] = None,
-        _is_nil: bool = False,
-    ):
-        self.x = x
-        self.y = y
-        self.right: "TreapNode[K, V]" = right if right else TreapNode.NIL_VERTEX
-        self.left: "TreapNode[K, V]" = left if left else TreapNode.NIL_VERTEX
+    @classmethod
+    def from_dict(cls, data: Dict[K, Any]):
+        res = TreapNode.NIL_VERTEX
+        for k, v in data.items():
+            res = res.insert(TreapNode(k, v))
+        return res
+
+    def __init__(self, key: K, value: Any, y: float = random.random()):
+        self.key: K = key
+        self.value: Any = value
+        self.y: float = y
+        self.right = self.left = TreapNode.NIL_VERTEX
 
     def __bool__(self) -> bool:
         """
@@ -46,13 +47,13 @@ class TreapNode(Generic[K, V]):
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TreapNode):
             return False
-        return self.x == other.x and self.y == other.y and self.left == other.left and self.right == other.right
+        return self.to_dict() == other.to_dict()
 
     def _print_tree(self) -> list[str]:
         if not self:
             return []
 
-        node_repr = f"({self.x}, {self.y})"
+        node_repr = f"({self.key}, {self.value})"
         node_w = len(node_repr)
 
         left_repr = self.left._print_tree()
@@ -94,48 +95,48 @@ class TreapNode(Generic[K, V]):
     def __repr__(self) -> str:
         return "\n".join(TreapNode._print_tree(self))
 
-    def insert(self, node: TreapNode[K, V]) -> TreapNode[K, V]:
-        if not self or self.x == node.x:
+    def insert(self, node: TreapNode[K]) -> TreapNode[K]:
+        if not self or self.key == node.key:
             return node
         if self.y < node.y:
-            node.left, node.right = self.split(node.x)
+            node.left, node.right = self.split(node.key)
             return node
-        if self.x < node.x:
+        if self.key < node.key:
             self.right = self.right.insert(node)
         else:
             self.left = self.left.insert(node)
         return self
 
-    def find(self, key: K) -> TreapNode[K, V]:
+    def find(self, key: K) -> TreapNode[K]:
         if not self:
-            raise KeyError
-        if self.x == key:
+            raise KeyError(f"No such key: {key}")
+        if self.key == key:
             return self
-        if self.x < key:
+        if self.key < key:
             return self.right.find(key)
         return self.left.find(key)
 
-    def delete(self, key: K) -> TreapNode[K, V]:
+    def delete(self, key: K) -> TreapNode[K]:
         if not self:
             raise KeyError(f"No such key: {key}")
-        if self.x == key:
+        if self.key == key:
             return self.left.merge(self.right)
-        if self.x < key:
+        if self.key < key:
             self.right = self.right.delete(key)
             return self
         self.left = self.left.delete(key)
         return self
 
-    def walk_direct(self) -> Iterator[TreapNode[K, V]]:
+    def walk_direct(self) -> Iterator[TreapNode[K]]:
         if not self:
             return
         yield self
-        for v in self.left.walk_direct():
-            yield v
-        for v in self.right.walk_direct():
-            yield v
+        for node in self.left.walk_direct():
+            yield node
+        for node in self.right.walk_direct():
+            yield node
 
-    def merge(self, other: TreapNode[K, V]) -> TreapNode[K, V]:
+    def merge(self, other: TreapNode[K]) -> TreapNode[K]:
         if not self:
             return other
         if not other:
@@ -147,27 +148,33 @@ class TreapNode(Generic[K, V]):
             self.right = self.right.merge(other)
             return self
 
-    def split(self, key: K) -> Tuple[TreapNode[K, V], ...]:
+    def split(self, key: K) -> Tuple[TreapNode[K], TreapNode[K]]:
         if not self:
             return TreapNode.NIL_VERTEX, TreapNode.NIL_VERTEX
-        if self.x < key:
+        if self.key < key:
             self.right, other = self.right.split(key)
             return self, other
         other, self.left = self.left.split(key)
         return other, self
 
+    def to_dict(self) -> Dict[K, Any]:
+        d = {}
+        for node in self.walk_direct():
+            d[node.key] = node.value
+        return d
+
 
 TreapNode._init_nil_node()
 
 
-class Treap(Generic[K, V]):
+class Treap(Generic[K]):
     """
     Tree of Nodes: (x, y)
     by x - it is a binary tree, no duplicates
     by y - it is a max heap
     """
 
-    def __init__(self, init_dict: Optional[Dict[K, V]] = None):
+    def __init__(self, init_dict: Optional[Dict[K, Any]] = None):
         self.root: TreapNode = TreapNode.NIL_VERTEX
         if init_dict:
             for key, item in init_dict.items():
@@ -181,30 +188,27 @@ class Treap(Generic[K, V]):
             return False
         return self.to_dict() == other.to_dict()
 
-    def to_dict(self) -> Dict[K, V]:
-        d = {}
-        for node in self:
-            d[node.x] = node.y
-        return d
+    def to_dict(self) -> Dict[K, Any]:
+        return self.root.to_dict()
 
-    def __iter__(self) -> Iterator[TreapNode[K, V]]:
+    def __iter__(self) -> Iterator[TreapNode[K]]:
         return self.root.walk_direct()
 
-    def __getitem__(self, key: K) -> V:
-        return self.root.find(key).y
+    def __getitem__(self, key: K) -> Any:
+        return self.root.find(key).value
 
-    def __setitem__(self, key: K, value: V):
+    def __setitem__(self, key: K, value: Any):
         try:
-            self.root.find(key).y = value
+            self.root.find(key).value = value
         except KeyError:
             self.root = self.root.insert(TreapNode(key, value))
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, key: K) -> bool:
         try:
-            self.root.find(item)
+            self.root.find(key)
             return True
         except KeyError:
             return False
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: K):
         self.root = self.root.delete(key)
