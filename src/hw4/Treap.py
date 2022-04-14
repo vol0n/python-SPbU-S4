@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, TypeVar, Generic, Iterator, Dict, Any, Protocol
+from typing import Optional, Tuple, TypeVar, Generic, Iterator, Dict, Any, Protocol, Callable
 from abc import abstractmethod
 import random
 
@@ -18,12 +18,15 @@ class Comparable(Protocol):
 
 
 class TreapNode(Generic[K]):
-    NIL_VERTEX: Any = None
+    class NilNodeDescriptor:
+        def __get__(self, instance, owner) -> TreapNode[K]:
+            if '_nil' not in TreapNode.__dict__:
+                ins = super().__new__(TreapNode)
+                ins.key = ins.value = ins.y = ins.right = ins.left = None
+                TreapNode._nil = ins
+            return TreapNode._nil
 
-    @classmethod
-    def _init_nil_node(cls):
-        cls.NIL_VERTEX = TreapNode(None, None)
-        cls.NIL_VERTEX.size = 0
+    NIL_VERTEX: TreapNode[K] = NilNodeDescriptor()
 
     @classmethod
     def from_dict(cls, data: Dict[K, Any]):
@@ -162,9 +165,6 @@ class TreapNode(Generic[K]):
         for node in self.walk_direct():
             d[node.key] = node.value
         return d
-
-
-TreapNode._init_nil_node()
 
 
 class Treap(Generic[K]):
