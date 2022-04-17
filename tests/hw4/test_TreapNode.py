@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pytest
-from src.hw4.Treap import TreapNode, K
-from typing import Any
+from src.hw4.Treap import TreapNode, K, split, merge
+from typing import Any, Union, Optional
 
 
-def is_treap(node: TreapNode) -> bool:
+def is_treap(node: Optional[TreapNode]) -> bool:
+    if not node:
+        return True
     res = True
     if node.left:
         res = res and node.left.key < node.key and node.left.y <= node.y and is_treap(node.left)
@@ -14,16 +16,14 @@ def is_treap(node: TreapNode) -> bool:
     return res
 
 
-def from_tuples(*nodes: tuple[K, Any, float] | tuple[K, Any]) -> TreapNode[K]:
-    res = TreapNode.NIL_VERTEX
+TupleNode = Union[tuple[K, Any, float], tuple[K, Any]]
+
+
+def from_tuples(node: TupleNode, *nodes: TupleNode) -> TreapNode[K]:
+    res = TreapNode(*node)
     for node in nodes:
         res = res.insert(TreapNode(*node))
     return res
-
-
-@pytest.mark.parametrize("node, expected", [(TreapNode.NIL_VERTEX, False), (TreapNode(1, 1), True)])
-def test_bool_conversion(node, expected):
-    assert expected == bool(node)
 
 
 @pytest.mark.parametrize(
@@ -35,8 +35,7 @@ def test_bool_conversion(node, expected):
             """
      ____(7, None)_____     
      |                |     
-(5, None)         (10, None)
-""".strip(
+(5, None)         (10, None)""".strip(
                 "\n"
             ),
         ),
@@ -47,44 +46,40 @@ def test_repr(node, expected):
 
 
 @pytest.mark.parametrize(
-    "treap_dict, node_dict, expected_dict",
+    "treap, node, expected",
     [
-        ({}, {1: 1}, {1: 1}),
-        ({1: 1}, {1: 1}, {1: 1}),
-        ({1: "1"}, {2: 2}, {1: "1", 2: 2}),
-        ({1: 1}, {0: 1}, {1: 1, 0: 1}),
-        ({1: 1}, {2: 0}, {1: 1, 2: 0}),
-        ({4: 6, 7: 6, 5: 7}, {1: 8}, {4: 6, 7: 6, 5: 7, 1: 8}),
+        (TreapNode(1, 1), TreapNode(1, 1), TreapNode(1, 1)),
+        (TreapNode(1, "1"), TreapNode(2, 2), from_tuples((1, "1"), (2, 2))),
+        (TreapNode(1, 1), TreapNode(0, 1), from_tuples((1, 1), (0, 1))),
+        (TreapNode(1, 1), TreapNode(2, 0), from_tuples((1, 1), (2, 0))),
+        (from_tuples((4, 6), (7, 6), (5, 7)), TreapNode(1, 8), from_tuples((4, 6), (7, 6), (5, 7), (1, 8))),
     ],
 )
-def test_insert(treap_dict, node_dict, expected_dict):
-    treap = TreapNode.from_dict(treap_dict)
-    node = TreapNode.from_dict(node_dict)
+def test_insert(treap, node, expected):
     assert is_treap(treap) and is_treap(node)
 
-    expected_treap = TreapNode.from_dict(expected_dict)
     new_treap = treap.insert(node)
-    assert is_treap(new_treap) and new_treap == expected_treap
+    assert is_treap(new_treap) and new_treap == expected
 
 
 @pytest.mark.parametrize(
     "node, other, expected",
     [
-        (TreapNode.NIL_VERTEX, TreapNode.NIL_VERTEX, TreapNode.NIL_VERTEX),
-        (TreapNode.NIL_VERTEX, TreapNode(1, 1), TreapNode(1, 1)),
-        (TreapNode(0, 0), TreapNode.NIL_VERTEX, TreapNode(0, 0)),
-        (TreapNode(3, 10), TreapNode(5, 1), TreapNode.from_dict({3: 10, 5: 1})),
+        (None, None, None),
+        (None, TreapNode(1, 1), TreapNode(1, 1)),
+        (TreapNode(0, 0), None, TreapNode(0, 0)),
+        (TreapNode(3, 10), TreapNode(5, 1), from_tuples((3, 10), (5, 1))),
     ],
 )
 def test_merge(node, other, expected):
     assert is_treap(node) and is_treap(other) and is_treap(expected)
-    assert expected == node.merge(other)
+    assert expected == merge(node, other)
 
 
 @pytest.mark.parametrize(
     "treap, key, expected",
     [
-        (TreapNode(0, 0), 0, TreapNode.NIL_VERTEX),
+        (TreapNode(0, 0), 0, None),
         (from_tuples((5, 5), (3, 3), (6, 6)), 5, from_tuples((6, 6), (3, 3))),
         (from_tuples((5, 5), (3, 3), (6, 6)), 3, from_tuples((5, 5), (6, 6))),
         (from_tuples((5, 5), (3, 3), (6, 6)), 6, from_tuples((5, 5), (3, 3))),
@@ -97,7 +92,7 @@ def test_delete(treap, key, expected):
     assert expected == new_treap_node
 
 
-@pytest.mark.parametrize("treap, key", [(TreapNode.NIL_VERTEX, 1), (from_tuples((3, 3), (2, 2), (4, 4), (1, 1)), 5)])
+@pytest.mark.parametrize("treap, key", [(from_tuples((3, 3), (2, 2), (4, 4), (1, 1)), 5)])
 def test_delete_raises(treap, key):
     with pytest.raises(KeyError):
         treap.delete(key)
@@ -106,26 +101,28 @@ def test_delete_raises(treap, key):
 @pytest.mark.parametrize(
     "root, key, expected",
     [
-        (TreapNode.NIL_VERTEX, 1, (TreapNode.NIL_VERTEX, TreapNode.NIL_VERTEX)),
-        (TreapNode(10, 1), 1, (TreapNode.NIL_VERTEX, TreapNode(10, 1))),
-        (TreapNode(1, 1), 10, (TreapNode(1, 1), TreapNode.NIL_VERTEX)),
+        (None, 1, (None, None)),
+        (TreapNode(10, 1), 1, (None, TreapNode(10, 1))),
+        (TreapNode(1, 1), 10, (TreapNode(1, 1), None)),
         (from_tuples((10, 12), (5, 5)), 7, (TreapNode(5, 5), TreapNode(10, 12))),
         (
             from_tuples((5, 7), (4, 6), (7, 6)),
             1,
-            (TreapNode.NIL_VERTEX, from_tuples((5, 7), (4, 6), (7, 6))),
+            (None, from_tuples((5, 7), (4, 6), (7, 6))),
         ),
     ],
 )
 def test_split(root, key, expected):
-    def check_split(treap1: TreapNode, treap2: TreapNode, k):
+    def check_split(treap1: Optional[TreapNode[K]], treap2: Optional[TreapNode[K]], k):
         assert is_treap(treap1) and is_treap(treap2)
-        for node in treap1.walk_direct():
-            assert node.key <= k
-        for node in treap2.walk_direct():
-            assert k <= node.key
+        if treap1:
+            for node in treap1.walk_direct():
+                assert node.key <= k
+        if treap2:
+            for node in treap2.walk_direct():
+                assert k <= node.key
 
-    tr1, tr2 = root.split(key)
+    tr1, tr2 = split(root, key)
     check_split(tr1, tr2, key)
     assert expected == (tr1, tr2)
 
@@ -133,7 +130,6 @@ def test_split(root, key, expected):
 @pytest.mark.parametrize(
     "treap, expected",
     [
-        (TreapNode.NIL_VERTEX, []),
         (TreapNode(1, 1), [TreapNode(1, 1)]),
         (
             from_tuples((3, 3, 3), (2, 2, 2), (1, 1, 1)),
