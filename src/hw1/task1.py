@@ -4,7 +4,7 @@ from typing import Union, List, Tuple
 
 Num = Union[float, int]
 Vector = List[Num]
-Matrix = List[List[Num]]
+Matrix = List[Vector]
 
 
 def check_vectors_compatible(vec1: Vector, vec2: Vector):
@@ -19,8 +19,8 @@ def calc_product(vec1: Vector, vec2: Vector) -> Num:
 
 def calc_len(vec: Vector) -> Num:
     if not vec:
-        raise ValueError("Vector should not be empty to calc his len!")
-    return sqrt(sum(map(lambda x: x**2, vec)))
+        raise ValueError("Vector should not be empty to calc its len!")
+    return sqrt(calc_product(vec, vec))
 
 
 # actually it return the cos of the angle
@@ -34,8 +34,6 @@ def calc_angle(vec1: Vector, vec2: Vector) -> Num:
 
 
 def check_is_matrix(mat: Matrix):
-    if len(mat) and not mat:
-        return
     assert len(mat), "Minimal matrix is [[]], not []"
     if not all(map(lambda row: len(row) == len(mat[0]), mat)):
         raise ValueError("All rows of a matrix must have the same size.")
