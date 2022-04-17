@@ -1,11 +1,11 @@
 #Requirements
-black==22.1.0
-mypy==0.941
-pytest==7.1.0
+black==22.3.0
+mypy==0.942
+pytest==7.1.1
 # for hw3 images downloading:
 aiohttp==3.8.1
 aiofiles==0.8.0
-beautifulsoup4==4.10.0
-pytest-asyncio==0.18.2
-types-aiofiles==0.8.4
+beautifulsoup4==4.11.1
+pytest-asyncio==0.18.3
+types-aiofiles==0.8.8
 

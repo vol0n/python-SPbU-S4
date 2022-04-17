@@ -32,6 +32,13 @@ def get_image_name(url_str: str) -> str:
     return urlparse(url_str).path.rsplit("/")[-1]
 
 
+async def save_image(path_to_save: Path, img_name: str, img: bytes):
+    if not path_to_save.exists():
+        path_to_save.mkdir(parents=True)
+    async with aiofiles.open(path_to_save / Path(img_name), mode="w+b") as fp:
+        await fp.write(img)
+
+
 async def download_image(path_to_save: Path, session: aiohttp.ClientSession):
     """
     Download image from https://www.thisfuckeduphomerdoesnotexist.com and
@@ -41,19 +48,13 @@ async def download_image(path_to_save: Path, session: aiohttp.ClientSession):
     :param session: aiohttp.ClientSession for making requests
     :return: None
     """
-
-    async def save_image():
-        if not path_to_save.exists():
-            path_to_save.mkdir(parents=True)
-        async with aiofiles.open(path_to_save / imgfilename, mode="w+b") as fp:
-            await fp.write(await img_resp.read())
-
     async with session.get(url) as page_resp:
-        img_url = find_img_url_from_html(await page_resp.text())
-        imgfilename = get_image_name(img_url)
+        img_url: str = find_img_url_from_html(await page_resp.text())
+        imgfilename: str = get_image_name(img_url)
         async with session.get(img_url) as img_resp:
             if img_resp.status == 200:
-                await save_image()
+                img: bytes = await img_resp.read()
+                await save_image(path_to_save, imgfilename, img)
 
 
 async def download_images(path_to_save: Path, images_count: int = 1):
