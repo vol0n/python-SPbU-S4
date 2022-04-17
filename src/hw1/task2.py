@@ -8,14 +8,14 @@ def check_exists(file_path: str):
 
 def wc(file_path: str) -> str:
     check_exists(file_path)
-    line_count = word_count = byte_count = 0
+    line_count = word_count = symbol_count = 0
     with open(file_path) as f:
         for line in f:
             line_count += 1
             word_count += len(line.split(" "))
-            byte_count += len(line)
+            symbol_count += len(line)
 
-    return f"{line_count} {word_count} {byte_count} {file_path}"
+    return f"{line_count} {word_count} {symbol_count} {file_path}"
 
 
 def nl(file_path: str) -> str:
@@ -24,8 +24,11 @@ def nl(file_path: str) -> str:
     line_number = 1
     with open(file_path) as f:
         for line in f:
-            newlines.append(f"{line_number} {line}")
-            line_number += 1
+            new_line = line
+            if line.strip():
+                new_line = f"{line_number} {new_line}"
+                line_number += 1
+            newlines.append(new_line)
     return "".join(newlines)
 
 
