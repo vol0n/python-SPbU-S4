@@ -9,7 +9,7 @@ K = TypeVar("K", bound="Comparable")
 
 class Comparable(Protocol):
     @abstractmethod
-    def __lt__(self, other: K) -> bool:
+    def __lt__(self, other: Any) -> bool:
         pass
 
     @abstractmethod
