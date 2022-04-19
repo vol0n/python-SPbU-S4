@@ -32,7 +32,7 @@ def nl(file_path: str) -> str:
     return "".join(newlines)
 
 
-def head(file_path: str, n: int) -> str:
+def head(file_path: str, n: int = 10) -> str:
     check_exists(file_path)
     lines = []
     with open(file_path) as f:
@@ -43,7 +43,7 @@ def head(file_path: str, n: int) -> str:
     return "".join(lines)
 
 
-def tail(file_path: str, n: int) -> str:
+def tail(file_path: str, n: int = 10) -> str:
     check_exists(file_path)
     with open(file_path) as f:
         lines = f.readlines()
