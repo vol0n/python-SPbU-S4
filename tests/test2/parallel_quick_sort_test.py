@@ -31,6 +31,6 @@ def test_sort(array, numproc, expected):
     (10000, 10)
 ])
 def test_on_big_array(size, procnum):
-    array = [rnd.random() for i in range(size)]
+    array = [rnd.random() for _ in range(size)]
     t2.quicksort(array, 0, len(array)-1, procnum)
     assert check_sorted(array)
