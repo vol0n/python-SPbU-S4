@@ -7,7 +7,7 @@ def partition(array, start, end):
     return index m such that start <= m < end, and swap elements in
     array so that array[start, m-1] <= array[m] <= array[m+1, end]
     """
-    k = random.randint(start, end)
+    k = end
     x = array[k]
     array[start], array[k] = array[k], array[start]
     i = start
