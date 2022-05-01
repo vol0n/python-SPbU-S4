@@ -1,5 +1,5 @@
 import pytest
-from src.test1.task2 import *
+from src.test1.test_1_task2 import *
 
 
 def test_simple_fun():
