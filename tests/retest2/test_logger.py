@@ -25,7 +25,6 @@ def test_multiple_calls(tmp_path: Path):
     foo(2, uu="g")
 
     lines = log_file.read_text().splitlines()
-    print(lines)
     assert len(lines) == 3
     assert lines[0].endswith("foo (0,) (uu=g) None")
     assert lines[1].endswith("foo (1,) (uu=g) None")
