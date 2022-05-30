@@ -1,9 +1,7 @@
 import numpy as np
+from scipy.linalg import norm
 from PIL import Image
-
-
-def dist(x: np.array, y: np.array):
-    return np.sqrt(np.sum((x - y) ** 2))
+from typing import Optional
 
 
 class KMeans:
@@ -16,8 +14,9 @@ class KMeans:
         @param n_clusters: Число итоговых кластеров при кластеризации.
         @param max_iter: Максимальное число итераций для K-means.
         """
-        self.n_clusters = n_clusters
-        self.max_iter = max_iter
+        self.n_clusters: int = n_clusters
+        self.max_iter: int = max_iter
+        self.centroids: Optional[np.array] = None
 
     def fit(self, x: np.array):
         """
@@ -25,50 +24,44 @@ class KMeans:
 
         @param x: Набор данных, который необходимо кластеризовать.
         """
-
         assert self.n_clusters <= x.shape[0], f"{self.n_clusters} clusters for {x.shape[0]} points is too much!"
 
-        # self.centroids = x[np.random.choice(x.shape[0], self.n_clusters, replace=False)]
         self._init_centroids(x)
 
         for i in range(self.max_iter - 1):
-            clusters = [[] for _ in range(len(self.centroids))]
-            for sample in x:
-                clusters[self.get_closest_centroid(sample)].append(sample)
-
             prev_centroids = self.centroids
-            for j, cluster in enumerate(clusters):
-                # if centroid has any points
-                if cluster:
-                    self.centroids[j] = np.mean(cluster, axis=0)
-
-            if np.equal(self.centroids, prev_centroids).all():
+            self._center_centroids(x, self._label_points(self._compute_distance(x)))
+            if np.all(prev_centroids == self.centroids):
                 break
+
+    def _compute_distance(self, x):
+        distance = np.zeros((x.shape[0], self.n_clusters))
+        for i in range(self.n_clusters):
+            distance[:, i] = norm(x - self.centroids[i], axis=1)
+        return distance
+
+    def _label_points(self, distance):
+        return np.argmin(distance, axis=1)
+
+    def _center_centroids(self, X, labeled_points):
+        for i in range(self.n_clusters):
+            self.centroids[i, :] = np.mean(X[labeled_points == i, :], axis=0)
 
     def _init_centroids(self, x):
         """
             init centroids so that each new centroid is far from other centroids
         """
+        self.centroids = np.zeros((self.n_clusters, x.shape[1]))
         # initially choose random sample from data
-        self.centroids = [x[np.random.choice(x.shape[0])]]
-        for _ in range(self.n_clusters-1):
+        self.centroids[0, :] = x[np.random.choice(x.shape[0])]
+        for i in range(1, self.n_clusters):
             # calculate the sum of distances from point to centroids, for each point
             dists = np.sum([np.sqrt(np.sum((x - centroid)**2, axis=1)) for centroid in self.centroids], axis=0)
             # normalise
             dists /= np.sum(dists)
             # choose new centroid randomly with probability proportional to sum of distances to centroids
             new_centroid_idx = np.random.choice(len(x), size=1, p=dists)
-            self.centroids += [x[new_centroid_idx]]
-
-    def get_closest_centroid(self, point: np.array) -> int:
-        min_idx = 0
-        min_dist = dist(point, self.centroids[0])
-        for i in range(1, len(self.centroids)):
-            d = dist(point, self.centroids[i])
-            if d < min_dist:
-                min_idx = i
-                min_dist = d
-        return min_idx
+            self.centroids[i, :] = x[new_centroid_idx]
 
     def predict(self, x: np.array) -> np.array:
         """
@@ -80,7 +73,7 @@ class KMeans:
                         (по одному индексу для каждого элемента из X).
         """
 
-        return np.array([self.get_closest_centroid(sample) for sample in x])
+        return self._label_points(self._compute_distance(x))
 
 
 filename = 'cluster-tree'
