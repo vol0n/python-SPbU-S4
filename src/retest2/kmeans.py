@@ -83,12 +83,14 @@ class KMeans:
         return np.array([self.get_closest_centroid(sample) for sample in x])
 
 
-with Image.open('before.jpeg') as im:
+filename = 'cluster-tree'
+ext = '.jpeg'
+with Image.open(filename + ext) as im:
     width, height = im.size
-    pixel_values = np.array([(i % width, i // width) + c for i, c in enumerate(list(im.getdata()))])
+    pixel_values = np.array(list(im.getdata()))
 
-    n_clusters = 11
-    n_iter = 10
+    n_clusters = 20
+    n_iter = 100
     model = KMeans(n_clusters, n_iter)
     model.fit(pixel_values)
 
@@ -96,5 +98,5 @@ with Image.open('before.jpeg') as im:
     pix = im.load()
     for i in range(len(pixel_values)):
         # as the centroid is calculated using mean, we should convert floats to int, because it rgb
-        pix[pixel_values[i][0], pixel_values[i][1]] = tuple(int(x) for x in model.centroids[labels[i]][2:])
-    im.save('after.png')
+        pix[i % width, i // width] = tuple(int(x) for x in model.centroids[labels[i]])
+    im.save(f'after_{filename}{ext}')
