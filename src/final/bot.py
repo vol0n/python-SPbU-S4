@@ -1,4 +1,5 @@
 import logging
+import os
 from math import inf
 from telegram import ForceReply, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext, MessageHandler, filters
@@ -62,7 +63,7 @@ async def set_len(update: Update, context: CallbackContext.DEFAULT_TYPE) -> None
 
 
 def main() -> None:
-    application = ApplicationBuilder().token("5526805334:AAE7iEwmQyEiP70z6USCb1WSRKL03ek14CI").build()
+    application = ApplicationBuilder().token(os.environ['TG_API_TOKEN']).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
