@@ -8,7 +8,7 @@ from transformers import pipeline
 logging.basicConfig(format="%(asctime)s | %(name)s | %(levelname)s : %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-generator = pipeline("text-generation", model="gpt2")
+generator = pipeline("text-generation", model="sshleifer/tiny-gpt2")
 max_len = 30
 num_of_sentences = 1
 
