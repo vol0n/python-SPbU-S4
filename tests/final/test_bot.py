@@ -2,6 +2,7 @@ from pytest import mark
 from telethon import TelegramClient
 from telethon.tl.custom.message import Message
 
+
 @mark.asyncio
 async def test_bot_works(client: TelegramClient):
     async with client.conversation("@VeryVerySmart_bot", timeout=15) as conv:
