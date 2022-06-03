@@ -25,21 +25,14 @@ async def help_command(update: Update, context: CallbackContext.DEFAULT_TYPE) ->
     message = update.message
     if message is None:
         return None
-    await message.reply_text(
-        "This bot generates some text from your text using gp2 model!\n"
-    )
+    await message.reply_text("This bot generates some text from your text using tiny-gpt2 model!\n")
 
 
 async def generate(update: Update, context: CallbackContext.DEFAULT_TYPE) -> None:
     # todo: a better way to tell mypy these are non Nones
     if update.message is None or update.message.text is None:
         return
-    generated_text = "\n".join(
-        data["generated_text"]
-        for data in generator(
-            update.message.text
-        )
-    )
+    generated_text = "\n".join(data["generated_text"] for data in generator(update.message.text))
     await update.message.reply_text(generated_text)
 
 
