@@ -1,0 +1,1 @@
+bot: python3 src/final/bot.py
