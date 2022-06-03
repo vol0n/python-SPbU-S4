@@ -24,6 +24,10 @@ jobs:
         run: |
           black . --check -l 120
       - name: Test with unittest
+        env:
+          TG_TEST_ID: ${{ secrets.TG_TEST_ID }}
+          TG_TEST_HASH: ${{ secrets.TG_TEST_HASH }}
+          TELEGRAM_TEST_SESSION: ${{ secrets.TELEGRAM_TEST_SESSION }}
         run: |
           if [ -d tests ]; then python -m pytest tests; fi
       - name: Check types with mypy
